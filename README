@@ -1,0 +1,31 @@
+Build:
+    ビルド済みのmozcのsrcディレクトリに移動
+
+    $ cd ~/src/mozc/src
+
+    gitリポジトリを取得しビルド
+
+    $ git clone git://github.com/hidegit/mozc-config.git
+    $ cd mozc-config
+    $ make
+
+Usage:
+    git-config [ -h | -a | -m | -g <NAME> | -s <NAME> <VALUE> | -c <NAME> ]
+    -h                - ヘルプを表示する
+    -a                - すべてのプロパティを表示する
+    -m                - 変更されたプロパティを表示する
+    -g <NAME>         - <NAME> プロパティを表示する
+    -s <NAME> <VALUE> - <NAME> プロパティに <VALUE> 値をセットする
+    -c <NAME>         - <NAME> プロパティをクリアする
+
+    値を変更した場合、ibus-mozcを再起動
+
+Trouble Shoot:
+    設定により不具合が出た場合は~/.mozc/config1.dbを削除し再起動すれば
+    初期状態に戻る。
+
+TODO:
+    未実装部分を実装
+    全体のブラッシュアップ
+    可能であればibus-mozcにリロード要求を送る機能を実装
+
