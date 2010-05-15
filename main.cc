@@ -22,9 +22,6 @@ using namespace std;
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/message.h"
 
-using namespace mozc;
-using namespace config;
-
 int atoi(string s) {
     return atoi(s.c_str());
 }
@@ -33,19 +30,48 @@ int atol(string s) {
     return atol(s.c_str());
 }
 
-void print_modifier() {
-    Config conf;
+bool is_bool_str(string value) {
+    return (value == "true" || value == "false") ? true : false;
+}
 
-    ConfigHandler::GetConfig(&conf);
+bool is_num_str(string value) {
+    const char* s = value.c_str();
+
+    for (int i = 0; i < value.length(); i++)
+        if (s[i] < '0' || '9' < s[i]) return false;
+
+    return true;
+}
+
+bool is_ignore(string name) {
+    const string ignores[] = {
+        "config_version",
+        "last_modified_product_version",
+        "last_modified_time",
+        "DEPRECATED_log_all_commands",
+        "DEPRECATED_upload_usage_stats",
+        ""
+    };
+
+    for (int i = 0; ignores[i] != ""; i++)
+        if (name == ignores[i]) return true;
+
+    return false;
+}
+
+void print_modifier() {
+    mozc::config::Config conf;
+
+    mozc::config::ConfigHandler::GetConfig(&conf);
     cout << conf.DebugString();
 }
 
 void get(string name) {
-    Config conf;
-    ConfigHandler::GetConfig(&conf);
+    mozc::config::Config conf;
+    mozc::config::ConfigHandler::GetConfig(&conf);
 
     const google::protobuf::FieldDescriptor* field =
-            Config::descriptor()->FindFieldByName(name);
+            mozc::config::Config::descriptor()->FindFieldByName(name);
     const google::protobuf::Reflection* ref = conf.GetReflection();
 
     if (field == NULL) return;
@@ -76,21 +102,26 @@ void get(string name) {
 }
 
 void set(string name, string value) {
-    Config conf;
-    ConfigHandler::GetConfig(&conf);
+    if (is_ignore(name)) return;
+
+    mozc::config::Config conf;
+    mozc::config::ConfigHandler::GetConfig(&conf);
 
     const google::protobuf::FieldDescriptor* field =
-            Config::descriptor()->FindFieldByName(name);
+            mozc::config::Config::descriptor()->FindFieldByName(name);
     const google::protobuf::Reflection* ref = conf.GetReflection();
 
     if (field == NULL) return;
 
     const int type = field->type();
     if (type == 4) {
+        if (!is_num_str(value)) return;
         ref->SetUInt64(&conf, field, atol(value));
     } else if (type == 5) {
+        if (!is_num_str(value)) return;
         ref->SetInt32(&conf, field, atoi(value));
     } else if (type == 8) {
+        if (!is_bool_str(value)) return;
         ref->SetBool(&conf, field, (value == "true") ? true : false);
     } else if (type == 9) {
         ref->SetString(&conf, field, value);
@@ -99,6 +130,7 @@ void set(string name, string value) {
     } else if (type == 12) {
         ref->SetString(&conf, field, value);
     } else if (type == 13) {
+        if (!is_num_str(value)) return;
         ref->SetUInt64(&conf, field, atol(value));
     } else if (type == 14) {
         const google::protobuf::EnumValueDescriptor* enum_value_desc =
@@ -110,28 +142,30 @@ void set(string name, string value) {
         return;
     }
 
-    ConfigHandler::SetConfig(conf);
+    mozc::config::ConfigHandler::SetConfig(conf);
 }
 
 void clear(string name) {
-    Config conf;
-    ConfigHandler::GetConfig(&conf);
+    if (is_ignore(name)) return;
+
+    mozc::config::Config conf;
+    mozc::config::ConfigHandler::GetConfig(&conf);
 
     const google::protobuf::FieldDescriptor* field =
-            Config::descriptor()->FindFieldByName(name);
+            mozc::config::Config::descriptor()->FindFieldByName(name);
 
     if (field == NULL) return;
 
     conf.GetReflection()->ClearField(&conf, field);
 
-    ConfigHandler::SetConfig(conf);
+    mozc::config::ConfigHandler::SetConfig(conf);
 }
 
 void print_all() {
-    Config conf;
-    ConfigHandler::GetConfig(&conf);
+    mozc::config::Config conf;
+    mozc::config::ConfigHandler::GetConfig(&conf);
 
-    const google::protobuf::Descriptor* desc = Config::descriptor();
+    const google::protobuf::Descriptor* desc = mozc::config::Config::descriptor();
     const google::protobuf::Reflection* ref = conf.GetReflection();
 
     for (int i = 0; i < desc->field_count(); i++) {
@@ -186,9 +220,6 @@ int main(int argc, char **argv) {
         print_all();
     } else if (flg == "-m") {
         print_modifier();
-//    } else if (flg == "-v") {
-//        if (argc > 2)
-//            print_value((string)argv[2]);
     } else if (flg == "-g") {
         if (argc > 2)
             get((string)argv[2]);
@@ -200,7 +231,6 @@ int main(int argc, char **argv) {
             clear((string)argv[2]);
     } else {
         print_help();
-        return -1;
     }
 
     return 0;
