@@ -23,6 +23,9 @@ Usage:
 Trouble Shoot:
     設定により不具合が出た場合は~/.mozc/config1.dbを削除し再起動すれば初期状態に戻る。
 
+LICENSE:
+    mozcに合わせ、BSDライセンスとする。
+
 TODO:
     未実装部分を実装
     全体のブラッシュアップ
