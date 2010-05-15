@@ -14,6 +14,7 @@
 #include <string>
 #include <cstdlib>
 #include <sstream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -57,13 +58,6 @@ bool is_ignore(string name) {
         if (name == ignores[i]) return true;
 
     return false;
-}
-
-void print_modifier() {
-    mozc::config::Config conf;
-
-    mozc::config::ConfigHandler::GetConfig(&conf);
-    cout << conf.DebugString();
 }
 
 void get(string name) {
@@ -161,6 +155,24 @@ void clear(string name) {
     mozc::config::ConfigHandler::SetConfig(conf);
 }
 
+int reboot() {
+    const char *path = "/usr/bin/killall";
+    char *const argv[] = {
+        (char *)"/usr/bin/killall",
+        (char *)"ibus-daemon",
+        (char *)NULL
+    };
+
+    return execv(path, argv);
+}
+
+void print_modifier() {
+    mozc::config::Config conf;
+
+    mozc::config::ConfigHandler::GetConfig(&conf);
+    cout << conf.DebugString();
+}
+
 void print_all() {
     mozc::config::Config conf;
     mozc::config::ConfigHandler::GetConfig(&conf);
@@ -206,6 +218,7 @@ void print_help() {
     cout << "    -g <NAME>         - <NAME> プロパティを表示する" << endl;
     cout << "    -s <NAME> <VALUE> - <NAME> プロパティに <VALUE> 値をセットする" << endl;
     cout << "    -c <NAME>         - <NAME> プロパティをクリアする" << endl;
+    cout << "    -r                - 強制的に再起動する" << endl;
 }
 
 int main(int argc, char **argv) {
@@ -229,6 +242,8 @@ int main(int argc, char **argv) {
     } else if (flg == "-c") {
         if (argc > 2)
             clear((string)argv[2]);
+    } else if (flg == "-r") {
+        reboot();
     } else {
         print_help();
     }
