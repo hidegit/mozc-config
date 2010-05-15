@@ -22,6 +22,92 @@ Usage:
     一度にひとつのオプションしか指定できない。
     値を変更した場合は、ibus-mozcを再起動する必要がある。
 
+Properties:
+    config_version = <uint32 default=0>
+        設定DBのバージョン - 自動設定
+    last_modified_product_version = <string default="0.0.0.0">
+        バージョン - 自動設定
+    last_modified_time = <uint64 default=0>
+        最終変更日時 - 自動設定
+    platform = <string default="">
+        プラットフォーム名
+    ui_locale = <string default="">
+        UIのロケール
+    verbose_level = <int32 default=0>
+        ログレベル
+    DEPRECATED_log_all_commands = <bool default=false>
+        無効値
+    incognito_mode = <bool default=false>
+        詳細不明
+    DEPRECATED_upload_usage_stats = <bool default=false>
+        無効値
+    check_default = <bool default=true>
+        詳細不明
+    preedit_method = <enum default=ROMAN>
+        ROMAN - ローマ字入力
+        KANA  - かな入力
+    session_keymap = <enum default=NONE>
+        NONE    - 無効
+        CUSTOM  - カスタムキーマップ
+        ATOK    - ATOKスタイル
+        MSIME   - MSIMEスタイル
+        KOTOERI - ことえりスタイル
+    custom_keymap_table = <bytes>
+        キーマップテーブル - 詳細不明
+    custom_roman_table = <bytes>
+        ローマ字テーブル - 詳細不明
+    punctuation_method = <enum default=KUTEN_TOUTEN>
+        KUTEN_TOUTEN - 「、」「。」の組み合わせ
+        COMMA_PERIOD - 「，」「．」
+        KUTEN_PERIOD - 「、」「．」
+        COMMA_TOUTEN - 「，」「。」
+    symbol_method = <enum default=CORNER_BRACKET_MIDDLE_DOT>
+        CORNER_BRACKET_MIDDLE_DOT - "[" -> "「", "/" -> "・"
+        SQUARE_BRACKET_SLASH      - "[" -> "［", "/" -> "／"
+        CORNER_BRACKET_SLASH      - "[" -> "「", "/" -> "／"
+        SQUARE_BRACKET_MIDDLE_DOT - "[" -> "［", "/" -> "・"
+    space_character_form = <enum default=FUNDAMENTAL_INPUT_MODE>
+        FUNDAMENTAL_INPUT_MODE - 空白の幅をモードによって変える
+        FUNDAMENTAL_FULL_WIDTH - 常に全角幅
+        FUNDAMENTAL_HALF_WIDTH - 常に半角幅
+    history_learning_level = <enum default=DEFAULT_HISTORY>
+        DEFAULT_HISTORY - ヒストリを使用
+        READ_ONLY       - 読みのみ
+        NO_HISTORY      - 使わない
+    selection_shortcut = <enum default=SHORTCUT_123456789>
+        NO_SHORTCUT        - 候補選択ショートカットなし
+        SHORTCUT_123456789 - 数字キーをショートカットにする
+        SHORTCUT_ASDFGHJKL - A〜Lをショートカットにする
+    character_form_rules = <repeated message>
+        詳細不明
+    use_auto_ime_turn_off = <bool default=true>
+        詳細不明
+    use_cascading_window = <bool default=true>
+        デバッグ用 - 詳細不明
+    shift_key_mode_switch = <enum default=ASCII_INPUT_MODE>
+        OFF                 - ひらがなのまま
+        ASCII_INPUT_MODE    - Shift + キーで英字入力
+        KATAKANA_INPUT_MODE - 同じく　　カタカナ入力
+    numpad_character_form = <enum default=NUMPAD_HALF_WIDTH>
+        NUMPAD_INPUT_MODE   - テンキー入力を入力モードで変える
+        NUMPAD_FULL_WIDTH   - 常に全角
+        NUMPAD_HALF_WIDTH   - 常に半角
+        NUMPAD_DIRECT_INPUT - 直接入力
+    use_date_conversion = <bool default=true>
+        日付変換のON・OFF
+    use_single_kanji_conversion = <bool default=true>
+        単漢字変換のON・OFF
+    use_symbol_conversion = <bool default=true>
+        記号変換のON・OFF
+    use_number_conversion = <bool default=true>
+        数字変換のON・OFF
+    use_history_suggest = <bool default=true>
+        ヒストリを使用するサジェスト機能のON・OFF
+    use_dictionary_suggest = <bool default=true>
+        辞書を使用するサジェスト機能のON・OFF
+    suggestions_size = <uint32 default=3>
+        サジェストウインドウの項目数
+
 Trouble Shoot:
     設定により不具合が出た場合は~/.mozc/config1.dbを削除し再起動すれば初期状態に戻る。
 
