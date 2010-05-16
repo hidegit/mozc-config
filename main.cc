@@ -125,7 +125,7 @@ void set(string name, string value) {
         ref->SetString(&conf, field, value);
     } else if (type == 13) {
         if (!is_num_str(value)) return;
-        ref->SetUInt64(&conf, field, atol(value));
+        ref->SetUInt32(&conf, field, atol(value));
     } else if (type == 14) {
         const google::protobuf::EnumValueDescriptor* enum_value_desc =
                 field->enum_type()->FindValueByName(value);

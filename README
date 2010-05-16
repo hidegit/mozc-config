@@ -1,3 +1,9 @@
+ibus-mozcの設定プログラムとして、コマンドライン用のmozc-configと
+GUIのibus-setup-mozcを提供しています。
+
+ibus-setup-mozcを利用する場合、現在の実装ではsetup.gladeとmozc-configを
+同じディレクトリファイルに置いておく必要があります。
+
 Build:
     ビルド済みのmozcのsrcディレクトリに移動
 
@@ -117,4 +123,4 @@ LICENSE:
 TODO:
     未実装部分を実装
     よりスマートなリロード要求機能を実現
-    GUIツールの作成
+    ibus-setup-mozcのネイティブ化、ja.poの作成、GUI配置の調整、他

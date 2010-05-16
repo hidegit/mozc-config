@@ -1,0 +1,95 @@
+#!/usr/bin/python
+
+from os import path, popen, system
+import gtk
+from gtk import glade
+
+
+enums = {
+    'preedit_method': ['ROMAN', 'KANA'],
+    'punctuation_method': ['KUTEN_TOUTEN', 'COMMA_PERIOD',
+                           'KUTEN_PERIOD', 'COMMA_TOUTEN'],
+    'symbol_method': ['CORNER_BRACKET_MIDDLE_DOT',
+                      'SQUARE_BRACKET_SLCORNER_BRASH',
+                      'CORNER_BRACKET_SLASH',
+                      'SQUARE_BRACKET_MIDDLE_DOT'],
+    'space_character_form': ['FUNDAMENTAL_INPUT_MODE',
+                             'FUNDAMENTAL_FULL_WIDTH',
+                             'FUNDAMENTAL_HALF_WIDTH'],
+    'selection_shortcut': ['NO_SHORTCUT',
+                           'SHORTCUT_123456789',
+                           'SHORTCUT_ASDFGHJKL],'],
+    'session_keymap': ['CUSTOM', 'ATOK', 'MSIME', 'KOTOERI'],
+    'history_learning_level': ['DEFAULT_HISTORY', 'READ_ONLY', 'NO_HISTORY']
+}
+
+MOZC_CONFIG = path.realpath(path.join(path.dirname(__file__), "mozc-config"))
+COMMANDS = []
+
+def get(name):
+    return popen('%s -g %s' % (MOZC_CONFIG, name)).readline().split(': ')[1].strip()
+
+def set(name, value):
+    print 'mozc-config -s', name, value
+    COMMANDS.append([name, value])
+
+def init_widget(xml):
+    for k in enums.keys():
+        try:
+#            print k, get(k)
+            xml.get_widget(k).set_active(enums[k].index(get(k)))
+        except:
+            pass
+
+    for k in ['use_single_kanji_conversion', 'use_symbol_conversion',
+              'use_date_conversion', 'use_number_conversion',
+              'use_auto_ime_turn_off',
+              'use_history_suggest','use_dictionary_suggest']:
+#        print k, get(k)
+        xml.get_widget(k).set_active(True if get(k) == 'true' else False)
+
+    for k in ['suggestions_size']:
+#        print k, get(k)
+        xml.get_widget(k).set_value(int(get(k)))
+
+class MozcSetup(object):
+    def __init__(self):
+        glade_file = path.join(path.dirname(__file__), "setup.glade")
+        self.xml = xml = glade.XML(glade_file)
+
+        init_widget(xml)
+
+        xml.signal_autoconnect(self)
+
+    def on_ok_button_clicked(self, widget):
+        print 'OK button clicked'
+        for k, v in COMMANDS:
+            print '%s -s %s %s' % (MOZC_CONFIG, k, v)
+            system('%s -s %s %s' % (MOZC_CONFIG, k, v))
+        system('%s -r' % MOZC_CONFIG)
+        gtk.main_quit()
+
+    def on_cancel_button_clicked(self, widget):
+        print 'Cancel button clicked'
+        gtk.main_quit()
+
+    def on_combobox_changed(self, widget):
+        set(widget.name, enums[widget.name][widget.get_active()])
+
+    def on_checkbutton_toggled(self, widget):
+        set(widget.name, 'true' if widget.get_active() else 'false')
+
+    def on_spinbutton_value_changed(self, widget):
+        set(widget.name, str(widget.get_value_as_int()))
+
+    def on_main_delete(self, widget, event):
+        self.on_cancel_button_clicked(widget)
+        return True
+
+    def run(self):
+        gtk.main()
+
+
+if __name__ == "__main__":
+    MozcSetup().run()
+
