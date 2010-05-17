@@ -1,0 +1,284 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-05-17 14:37+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: setup.glade:8
+msgid "Mozc Properties"
+msgstr "Mozc プロパティ"
+
+#: setup.glade:53
+msgid "Preedit"
+msgstr "ローマ字入力・かな入力"
+
+#: setup.glade:60
+msgid "Punctuation"
+msgstr "句読点"
+
+#: setup.glade:71
+msgid "Symbol"
+msgstr "記号"
+
+#: setup.glade:82
+msgid "Space Charactor"
+msgstr "スペースの入力"
+
+#: setup.glade:93
+msgid "Sellection Shortcut"
+msgstr "選択候補ショートカット"
+
+#: setup.glade:103
+msgid ""
+"ROMAN\n"
+"KANA"
+msgstr ""
+"ローマ字入力\n"
+"かな入力"
+
+#: setup.glade:116
+msgid ""
+"KUTEN_TOUTEN\n"
+"COMMA_PERIOD\n"
+"KUTEN_PERIOD\n"
+"COMMA_TOUTEN"
+msgstr ""
+"、。\n"
+"，．\n"
+"、．\n"
+"，。"
+
+#: setup.glade:133
+msgid ""
+"CORNER_BRACKET_MIDDLE_DOT\n"
+"SQUARE_BRACKET_SLASH\n"
+"CORNER_BRACKET_SLASH\n"
+"SQUARE_BRACKET_MIDDLE_DOT"
+msgstr ""
+"「」・\n"
+"［］／\n"
+"「」／\n"
+"［］・"
+
+#: setup.glade:150
+msgid ""
+"FUNDAMENTAL_INPUT_MODE\n"
+"FUNDAMENTAL_FULL_WIDTH\n"
+"FUNDAMENTAL_HALF_WIDTH"
+msgstr ""
+"入力モードに従う\n"
+"常に全角\n"
+"常に半角"
+
+#: setup.glade:166
+msgid ""
+"NO_SHORTCUT\n"
+"SHORTCUT_123456789\n"
+"SHORTCUT_ASDFGHJKL"
+msgstr ""
+"設定なし\n"
+"1 -- 9\n"
+"ASDFGHJKL"
+
+#: setup.glade:186
+msgid "<b>Basic</b>"
+msgstr "基本設定"
+
+#: setup.glade:219
+msgid "Session Keymap"
+msgstr "キー設定の選択"
+
+#: setup.glade:230
+msgid "Edit..."
+msgstr "編集..."
+
+#: setup.glade:245
+msgid ""
+"CUSTOM\n"
+"ATOK\n"
+"MSIME\n"
+"KOTOERI"
+msgstr ""
+"カスタム\n"
+"ATOK\n"
+"MS-IME\n"
+"ことえり"
+
+#: setup.glade:273
+msgid "<b>Key Config</b>"
+msgstr "キー設定"
+
+#: setup.glade:293
+msgid "General"
+msgstr "一般"
+
+#: setup.glade:324
+msgid "Learning History"
+msgstr "学習機能"
+
+#: setup.glade:329
+msgid "Clear Learning History"
+msgstr "学習履歴のクリア"
+
+#: setup.glade:347
+msgid ""
+"DEFAULT_HISTORY\n"
+"READ_ONLY\n"
+"NO_HISTORY"
+msgstr ""
+"有効\n"
+"有効（新規学習はしない）\n"
+"無効"
+
+#: setup.glade:369
+msgid "<b>Lerning</b>"
+msgstr "学習"
+
+#: setup.glade:399
+#, fuzzy
+msgid "Edit User Dictionary..."
+msgstr "ユーザー辞書の編集..."
+
+#: setup.glade:418
+msgid "<b>User Dictionary</b>"
+msgstr "ユーザー辞書"
+
+#: setup.glade:453
+msgid "Single Kanji Conversion"
+msgstr "単漢字辞書"
+
+#: setup.glade:464
+msgid "symbol Conversion"
+msgstr "記号辞書"
+
+#: setup.glade:479
+msgid "Date Conversion"
+msgstr "日付変換を有効にする"
+
+#: setup.glade:494
+msgid "Number Conversion"
+msgstr "数字変換を有効にする"
+
+#: setup.glade:516
+msgid "<b>Other Dictionaries</b>"
+msgstr "その他の辞書"
+
+#: setup.glade:539
+msgid "Dictionary"
+msgstr "辞書"
+
+#: setup.glade:564
+msgid "Use Auto IME"
+msgstr "自動英数変換を有効にする"
+
+#: setup.glade:578
+msgid "<b>Accessibility</b>"
+msgstr "入力補助"
+
+#: setup.glade:606
+msgid "Not Implemented Yet!!"
+msgstr ""
+
+#: setup.glade:614
+msgid "<b>Charactor Width</b>"
+msgstr "半角・全角"
+
+#: setup.glade:635
+msgid "Accessibility"
+msgstr "入力補助"
+
+#: setup.glade:669
+msgid "Use History Suggest"
+msgstr "入力履歴からのサジェスト自動表示を有効にする"
+
+#: setup.glade:689
+msgid "Delete All History"
+msgstr "全入力履歴を削除"
+
+#: setup.glade:704
+msgid "Delete Unused history"
+msgstr "未使用の履歴を削除"
+
+#: setup.glade:735
+msgid "Use Dictionary Suggest"
+msgstr "システム辞書からのサジェスト自動表示を有効にする"
+
+#: setup.glade:759
+msgid "<b>Kind of suggest</b>"
+msgstr "サジェストの種類"
+
+#: setup.glade:792
+msgid "Suggestion Size"
+msgstr "サジェストの最大候補数"
+
+#: setup.glade:821
+msgid "<b>Other Settings</b>"
+msgstr "その他の設定"
+
+#: setup.glade:844
+msgid "Suggest"
+msgstr "サジェスト"
+
+#: setup.glade:879
+msgid "Config Version"
+msgstr "設定用データベースのバージョン"
+
+#: setup.glade:889 setup.glade:937
+msgid "0"
+msgstr ""
+
+#: setup.glade:900
+msgid "Product Version"
+msgstr "Mozc のバージョン"
+
+#: setup.glade:912
+msgid "0.0.0.0"
+msgstr ""
+
+#: setup.glade:925
+msgid "Modified Time"
+msgstr "最終変更時間"
+
+#: setup.glade:950
+msgid "Platform"
+msgstr "プラットフォーム"
+
+#: setup.glade:962
+msgid "Linux"
+msgstr ""
+
+#: setup.glade:978
+msgid "<b>Informations</b>"
+msgstr "情報"
+
+#: setup.glade:1006
+msgid "Incognite"
+msgstr "使用統計データや障害レポートの自動送信を許可する"
+
+#: setup.glade:1018
+msgid "<b>Privacy</b>"
+msgstr "プライバシー"
+
+#: setup.glade:1052
+msgid "Log Level"
+msgstr "ログの詳細度"
+
+#: setup.glade:1080
+msgid "<b>Logging</b>"
+msgstr "ログ設定"
+
+#: setup.glade:1104
+msgid "Others"
+msgstr "その他"

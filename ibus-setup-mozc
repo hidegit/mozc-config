@@ -5,6 +5,8 @@ import gtk
 from gtk import glade
 
 
+LOCALE_DIR = path.realpath(path.dirname(__file__))
+
 enums = {
     'preedit_method': ['ROMAN', 'KANA'],
     'punctuation_method': ['KUTEN_TOUTEN', 'COMMA_PERIOD',
@@ -54,12 +56,15 @@ def init_widget(xml):
 
 class MozcSetup(object):
     def __init__(self):
+        glade.bindtextdomain("ibus-mozc", LOCALE_DIR)
+        glade.textdomain("ibus-mozc")
+
         glade_file = path.join(path.dirname(__file__), "setup.glade")
-        self.xml = xml = glade.XML(glade_file)
+        self.xml = glade.XML(glade_file)
 
-        init_widget(xml)
+        init_widget(self.xml)
 
-        xml.signal_autoconnect(self)
+        self.xml.signal_autoconnect(self)
 
     def on_ok_button_clicked(self, widget):
         print 'OK button clicked'
