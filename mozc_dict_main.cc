@@ -11,14 +11,16 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <unistd.h>
 
 using namespace std;
 
+#include "dictionary/user_dictionary.h"
 #include "dictionary/user_dictionary_util.h"
 #include "dictionary/user_dictionary_storage.h"
-#include "dictionary/user_dictionary.h"
+#include "dictionary/user_dictionary_importer.h"
 
 class MozcDict {
   public:
@@ -26,10 +28,13 @@ class MozcDict {
     void set_entry(string key, string value, string pos, string comment);
     void debug_print();
     bool save();
+    int  import(string name, char* file_name);
+    void clear(string name);
 
   protected:
     int dic_num();
     int new_dic(string name);
+    mozc::UserDictionaryStorage::UserDictionary* get_dic(string name);
 
   private:
     mozc::UserDictionaryStorage* stor;
@@ -40,6 +45,15 @@ MozcDict::MozcDict() {
     string name = mozc::UserDictionaryUtil::GetUserDictionaryFileName();
     stor = new mozc::UserDictionaryStorage(name);
     stor->Load();
+}
+
+mozc::UserDictionaryStorage::UserDictionary* MozcDict::get_dic(string name) {
+    for (int i = 0; i < dic_num(); i++) {
+        mozc::UserDictionaryStorage::UserDictionary* dic =
+                stor->mutable_dictionaries(i);
+        if (dic->name() == name) return dic;
+    }
+    return NULL;
 }
 
 void MozcDict::set_entry(string key, string value, string pos, string comment) {
@@ -102,12 +116,52 @@ int reboot() {
     return execv(path, argv);
 }
  
+void MozcDict::clear(string name) {
+    mozc::UserDictionaryStorage::UserDictionary* dic = get_dic(name);
+    if (dic) dic->clear_entries();
+}
+
+int MozcDict::import(string name, char* file_name) {
+    mozc::UserDictionaryStorage::UserDictionary* dic = get_dic(name);
+    if (dic == NULL) {
+        new_dic(name);
+        dic = get_dic(name);
+    }
+
+    ifstream is;
+    is.open(file_name, ios::in);
+
+    mozc::UserDictionaryImporter::IStreamTextLineIterator iter(&is);
+
+    mozc::UserDictionaryImporter::ErrorType error =
+    mozc::UserDictionaryImporter::ImportFromTextLineIterator(
+            mozc::UserDictionaryImporter::IME_AUTO_DETECT, &iter, dic);
+
+    is.close();
+/*
+cout << "err = " << error << endl;
+
+for (int j = 0; j < dic->entries_size(); j ++) {
+    mozc::UserDictionaryStorage::UserDictionaryEntry* entry =
+            dic->mutable_entries(j);
+    if (entry == NULL) continue;
+    cout << "\t" << entry->key() << "\t" << entry->value()
+         << "\t" << entry->pos() << "\t" << entry->comment() << endl;
+}
+*/
+    return error;
+}
+
 void print_help() {
     cout << "Usage:" << endl;
     cout << "    mozc-dict [ -h | -a | -s <よみ> <単語> <品詞> ]" << endl;
     cout << "        -h                      - ヘルプを表示する" << endl;
     cout << "        -a                      - 辞書の内容をすべて表示する" << endl;
     cout << "        -s <よみ> <単語> <品詞> - 単語を登録する" << endl;
+    cout << "        -i <辞書名> <辞書ファイル名>" << endl;
+    cout << "                                - 辞書ファイルをインポートする" << endl;
+    cout << "                                - ファイルはUTF-8文字コード・TAB区切り" << endl;
+    cout << "        -c <辞書名>             - <辞書名> で指定した内部辞書をクリアする" << endl;
     cout << "        -r                      - 強制的に再起動する" << endl;
 }
 
@@ -124,8 +178,18 @@ int main(int argc, char **argv) {
     if (flg == "-a") {
         md.debug_print();
     } else if (flg == "-s") {
+        if (argc > 4) {
+            md.set_entry(argv[2], argv[3], argv[4], "");
+            md.save();
+        }
+    } else if (flg == "-i") {
         if (argc > 3) {
-            md.set_entry(argv[1], argv[2], argv[3], "");
+            md.import(argv[2], argv[3]);
+            md.save();
+        }
+    } else if (flg == "-c") {
+        if (argc > 2) {
+            md.clear(argv[2]);
             md.save();
         }
     } else if (flg == "-r") {
