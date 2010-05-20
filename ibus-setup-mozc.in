@@ -5,7 +5,9 @@ import gtk
 from gtk import glade
 
 
-LOCALE_DIR = path.realpath(path.dirname(__file__))
+LOCALE_DIR = '@LOCALE_DIR@'
+GLADE_FILE = path.join('@IBUS_MOZC_DIR@', 'setup.glade')
+MOZC_CONFIG = path.join('@BIN_DIR@', 'mozc-config')
 
 enums = {
     'preedit_method': ['ROMAN', 'KANA'],
@@ -25,7 +27,6 @@ enums = {
     'history_learning_level': ['DEFAULT_HISTORY', 'READ_ONLY', 'NO_HISTORY']
 }
 
-MOZC_CONFIG = path.realpath(path.join(path.dirname(__file__), "mozc-config"))
 COMMANDS = []
 
 def get(name):
@@ -59,7 +60,7 @@ class MozcSetup(object):
         glade.bindtextdomain("ibus-mozc", LOCALE_DIR)
         glade.textdomain("ibus-mozc")
 
-        glade_file = path.join(path.dirname(__file__), "setup.glade")
+        glade_file = GLADE_FILE
         self.xml = glade.XML(glade_file)
 
         init_widget(self.xml)

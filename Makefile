@@ -1,46 +1,74 @@
+DESTDIR =
+prefix = /usr/local
+bindir = $(prefix)/bin
+libexecdir = $(prefix)/libexec
+datadir = $(prefix)/share
+
 CXX	= g++
 RM	= rm -f
+INSTALL = /usr/bin/install
+
+MOZC_SRC = ..
 
 CFLAGS	= 
 
-LDFLAGS	= 
+LDFLAGS	=
 
-INCS	= -I.. \
-	      -I../out/Release/obj/gen/proto_out
+INCS	= -I$(MOZC_SRC) \
+	      -I$(MOZC_SRC)/out/Release/obj/gen/proto_out
 
-TARGET	= mozc-config
+MOZC_CONF	= mozc-config
 
-OBJS	= main.o
+MOZC_CONF_OBJS	= mozc_config_main.o
 
 MOZC_DICT	= mozc-dict
 
 MOZC_DICT_OBJS	= mozc_dict_main.o
 
-EXTOBJS	= ../out/Release/obj.target/session_protocol/gen/proto_out/session/config.pb.o \
-          ../out/Release/obj.target/session/libconfig_handler.a \
-		  ../out/Release/obj.target/dictionary/libdictionary.a \
-		  ../out/Release/obj.target/dictionary/libuser_pos_data.a \
-          ../out/Release/obj.target/base/*.a
+EXTOBJS	= $(MOZC_SRC)/out/Release/obj.target/session_protocol/gen/proto_out/session/config.pb.o \
+          $(MOZC_SRC)/out/Release/obj.target/session/libconfig_handler.a \
+		  $(MOZC_SRC)/out/Release/obj.target/dictionary/libdictionary.a \
+		  $(MOZC_SRC)/out/Release/obj.target/dictionary/libuser_pos_data.a \
+          $(MOZC_SRC)/out/Release/obj.target/base/*.a
 
 LIBS	= -lpthread -lprotobuf
 
-all:	$(TARGET) $(MOZC_DICT) ja.mo
+IBUS_SETUP_MOZC = ibus-setup-mozc
 
-$(TARGET):	$(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $(LIBS) $(OBJS) $(EXTOBJS)
+MOS = ja.mo
+
+all:	$(MOZC_CONF) $(MOZC_DICT) $(MOS)
+
+$(MOZC_CONF):	$(MOZC_CONF_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $(LIBS) $(MOZC_CONF_OBJS) $(EXTOBJS)
 
 $(MOZC_DICT):	$(MOZC_DICT_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $(LIBS) $(MOZC_DICT_OBJS) $(EXTOBJS)
 
+$(IBUS_SETUP_MOZC) :	$(IBUS_SETUP_MOZC).in
+	sed -e 's|@LOCALE_DIR@|$(DESTDIR)/$(datadir)/locale|' \
+		-e 's|@IBUS_MOZC_DIR@|$(DESTDIR)/$(datadir)/ibus-mozc/setup|' \
+		-e 's|@BIN_DIR@|$(DESTDIR)/$(bindir)|' $@.in > $@
+	chmod +x $@
+
+install: all $(IBUS_SETUP_MOZC)
+	$(INSTALL) -d $(DESTDIR)/$(bindir)
+	$(INSTALL) -d $(DESTDIR)/$(libexecdir)
+	$(INSTALL) -d $(DESTDIR)/$(datadir)/locale/ja/LC_MESSAGES
+	$(INSTALL) -d $(DESTDIR)/$(datadir)/ibus-mozc/setup
+	$(INSTALL) -m755 $(MOZC_CONF) $(MOZC_DICT) $(DESTDIR)/$(bindir)
+	$(INSTALL) -m755 $(IBUS_SETUP_MOZC) $(DESTDIR)/$(libexecdir)
+	$(INSTALL) -m644 ja.mo $(DESTDIR)/$(datadir)/locale/ja/LC_MESSAGES/ibus-mozc.mo
+	$(INSTALL) -m644 setup.glade $(DESTDIR)/$(datadir)/ibus-mozc/setup
+ 
 clean:
-	$(RM) $(TARGET) $(OBJS) $(MOZC_DICT) $(MOZC_DICT_OBJS)
-	$(RM) -r ja.mo ja/
+	$(RM) $(MOZC_CONF) $(MOZC_CONF_OBJS) $(MOZC_DICT) $(MOZC_DICT_OBJS) $(IBUS_SETUP_MOZC) $(MOS)
+
+.SUFFIXES: .cc .o .po .mo
 
 .cc.o:
 	$(CXX) $(CFLAGS) $(INCS) -c $<
 
-ja.mo:	ja.po
-	msgfmt -o ja.mo ja.po
-	mkdir -p ja/LC_MESSAGES
-	ln -s ../../ja.mo ja/LC_MESSAGES/ibus-mozc.mo
+.po.mo:
+	msgfmt -o $*.mo $*.po
 
