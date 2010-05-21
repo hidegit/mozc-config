@@ -12,11 +12,13 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 
 using namespace std;
 
+#include "base/util.h"
 #include "dictionary/user_dictionary.h"
 #include "dictionary/user_dictionary_util.h"
 #include "dictionary/user_dictionary_storage.h"
@@ -64,12 +66,20 @@ void MozcDict::set_entry(string key, string value, string pos, string comment) {
             stor->mutable_dictionaries(0);
     if (dic == NULL) return;
 
+    mozc::UserDictionaryStorage::UserDictionaryEntry from, to;
+    from.set_key(key);
+    from.set_value(value);
+    from.set_pos(pos);
+    if (!mozc::UserDictionaryImporter::ConvertEntry(from, &to)) {
+        cerr << "Invalid POS Error - " << pos << endl;
+        return;
+    }
     mozc::UserDictionaryStorage::UserDictionaryEntry* entry =
             dic->add_entries();
     if (entry == NULL) return;
     entry->set_key(key);
     entry->set_value(value);
-    entry->set_pos(pos);
+    entry->set_pos(to.pos());
     entry->set_comment(comment);
 }
 
@@ -106,10 +116,10 @@ bool MozcDict::save() {
 }
 
 int reboot() {
-    const char *path = "/usr/bin/killall";
+    const char *path = "/usr/bin/ibus-daemon";
     char *const argv[] = {
-        (char *)"/usr/bin/killall",
-        (char *)"ibus-daemon",
+        (char *)"/usr/bin/ibus-daemon",
+        (char *)"-xrd",
         (char *)NULL
     };
 
@@ -129,26 +139,43 @@ int MozcDict::import(string name, char* file_name) {
     }
 
     ifstream is;
-    is.open(file_name, ios::in);
+    is.open(file_name, ios::binary);
+    if (is.fail()) {
+        cerr << "Open Error - " << file_name << endl;
+        return -1;
+    }
+    is.seekg(0, ios::end);
+    streampos len = is.tellg();
+    is.seekg(0, ios::beg);
+    char *input = new char[len];
+    is.read(input, len);
+    is.close();
 
-    mozc::UserDictionaryImporter::IStreamTextLineIterator iter(&is);
+    mozc::UserDictionaryImporter::EncodingType type =
+            mozc::UserDictionaryImporter::GuessEncodingType(input, len);
+    string output;
+    if (type == mozc::UserDictionaryImporter::UTF8) {
+        output += input;
+    } else if (type == mozc::UserDictionaryImporter::SHIFT_JIS) {
+        mozc::Util::SJISToUTF8(input, &output);
+        if (output == "") {
+            cerr << "Convert Error" << endl;
+            delete[] input;
+            return -1;
+        }
+    } else {
+        cerr << "Not Implemented Encode Type" << endl;
+        delete[] input;
+        return -1;
+    }
 
+    istringstream ss(output);
+    mozc::UserDictionaryImporter::IStreamTextLineIterator iter(&ss);
     mozc::UserDictionaryImporter::ErrorType error =
     mozc::UserDictionaryImporter::ImportFromTextLineIterator(
             mozc::UserDictionaryImporter::IME_AUTO_DETECT, &iter, dic);
 
-    is.close();
-/*
-cout << "err = " << error << endl;
-
-for (int j = 0; j < dic->entries_size(); j ++) {
-    mozc::UserDictionaryStorage::UserDictionaryEntry* entry =
-            dic->mutable_entries(j);
-    if (entry == NULL) continue;
-    cout << "\t" << entry->key() << "\t" << entry->value()
-         << "\t" << entry->pos() << "\t" << entry->comment() << endl;
-}
-*/
+    delete[] input;
     return error;
 }
 

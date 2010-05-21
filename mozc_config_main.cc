@@ -142,11 +142,14 @@ void set(string name, string value) {
 void clear(string name) {
     if (is_ignore(name)) return;
 
-    mozc::config::Config conf;
-    mozc::config::ConfigHandler::GetConfig(&conf);
+//    mozc::config::Config conf;
+  //  mozc::config::ConfigHandler::GetConfig(&conf);
+
+    mozc::config::Config conf = mozc::config::ConfigHandler::GetConfig();
 
     const google::protobuf::FieldDescriptor* field =
-            mozc::config::Config::descriptor()->FindFieldByName(name);
+            conf.GetDescriptor()->FindFieldByName(name);
+//            mozc::config::Config::descriptor()->FindFieldByName(name);
 
     if (field == NULL) return;
 
@@ -156,10 +159,10 @@ void clear(string name) {
 }
 
 int reboot() {
-    const char *path = "/usr/bin/killall";
+    const char *path = "/usr/bin/ibus-daemon";
     char *const argv[] = {
-        (char *)"/usr/bin/killall",
-        (char *)"ibus-daemon",
+        (char *)"/usr/bin/ibus-daemon",
+        (char *)"-xrd",
         (char *)NULL
     };
 
@@ -174,10 +177,12 @@ void print_modifier() {
 }
 
 void print_all() {
-    mozc::config::Config conf;
-    mozc::config::ConfigHandler::GetConfig(&conf);
+//    mozc::config::Config conf;
+//    mozc::config::ConfigHandler::GetConfig(&conf);
 
-    const google::protobuf::Descriptor* desc = mozc::config::Config::descriptor();
+    mozc::config::Config conf = mozc::config::ConfigHandler::GetConfig();
+
+    const google::protobuf::Descriptor* desc = conf.GetDescriptor();//mozc::config::Config::descriptor();
     const google::protobuf::Reflection* ref = conf.GetReflection();
 
     for (int i = 0; i < desc->field_count(); i++) {
