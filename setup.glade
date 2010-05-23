@@ -598,12 +598,22 @@ NO_HISTORY</property>
                         <child>
                           <widget class="GtkAlignment" id="alignment8">
                             <property name="visible">True</property>
+                            <property name="top_padding">6</property>
+                            <property name="bottom_padding">6</property>
                             <property name="left_padding">12</property>
                             <child>
-                              <widget class="GtkLabel" id="label26">
+                              <widget class="GtkScrolledWindow" id="scrolledwindow1">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="label" translatable="yes">Not Implemented Yet!!</property>
+                                <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">automatic</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <child>
+                                  <widget class="GtkTreeView" id="character_form_rules">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="enable_grid_lines">both</property>
+                                  </widget>
+                                </child>
                               </widget>
                             </child>
                           </widget>

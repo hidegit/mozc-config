@@ -60,6 +60,40 @@ bool is_ignore(string name) {
     return false;
 }
 
+void debug_str_to_name(string& s) {
+    string list[][2] = {
+        {"\"\\343\\202\\242\"", "KATAKANA"},
+        {"\"A\"", "ALPHABET"},
+        {"\"0\"", "NUMBER"},
+        {"\\343\\200\\202\\343\\200\\201", "。、"},
+        {"\\343\\203\\273\\343\\200\\214\\343\\200\\215", "・「」"},
+        {"", ""}
+    };
+    string::size_type pos;
+    for (int i = 0; list[i][0] != ""; i++) {
+        pos = s.find(list[i][0]);
+        if (pos != string::npos) {
+            s.replace(pos, list[i][0].length(), list[i][1]);
+        }
+    }
+}
+
+void group_to_inner(string& s) {
+    string list[][2] = {
+        {"KATAKANA", "ア"},
+        {"ALPHABET", "A"},
+        {"NUMBER", "0"},
+        {"", ""},
+    };
+    string::size_type pos;
+    for (int i = 0; list[i][0] != ""; i++) {
+        pos = s.find(list[i][0]);
+        if (pos != string::npos) {
+            s.replace(pos, list[i][0].length(), list[i][1]);
+        }
+    }
+}
+
 void get(string name) {
     mozc::config::Config conf;
     mozc::config::ConfigHandler::GetConfig(&conf);
@@ -72,6 +106,8 @@ void get(string name) {
 
     stringstream value;
 
+    value << name << ": ";
+
     const int type = field->type();
     if (type == 4) {
         value << ref->GetUInt64(conf, field);
@@ -81,8 +117,22 @@ void get(string name) {
         value << (ref->GetBool(conf, field) ? "true" : "false");
     } else if (type == 9) {
         value << "\"" << ref->GetString(conf, field) << "\"";
-//    } else if (type == 11) {
-//        value << type;
+    } else if (type == 11 && name == "character_form_rules") {
+        if (conf.character_form_rules_size() <= 0)
+            mozc::config::ConfigHandler::GetDefaultConfig(&conf);
+        value.clear();
+        for (int i = 0; i < conf.character_form_rules_size(); i++) {
+            const mozc::config::Config_CharacterFormRule& rule =
+                    conf.character_form_rules(i);
+            value << name << " {" << endl;
+            istringstream is(rule.DebugString());
+            string s;
+            while (getline(is, s)) {
+                debug_str_to_name(s);
+                value << "  " << s << endl;
+            }
+            value << "}" << endl;
+        }
     } else if (type == 12) {
         value << "\"" << ref->GetString(conf, field) << "\"";
     } else if (type == 13) {
@@ -92,7 +142,63 @@ void get(string name) {
     } else {
         value << "/* Not Impl Error!! */";
     }
-    cout << name << ": " << value.str() << endl;
+    cout << value.str();
+    if (type != 11)
+        cout << endl;
+}
+
+void set_character_form_rules(string name, string group, string preedit, string conversion) {
+    mozc::config::Config conf = mozc::config::ConfigHandler::GetConfig();
+
+    const google::protobuf::FieldDescriptor* field =
+            mozc::config::Config::descriptor()->FindFieldByName(name);
+    const google::protobuf::Reflection* ref = conf.GetReflection();
+
+    if (field == NULL) return;
+
+    if (field->type() != 11 || name != "character_form_rules") return;
+
+    group_to_inner(group);
+
+    mozc::config::Config conf2;
+    mozc::config::ConfigHandler::GetDefaultConfig(&conf2);
+
+    for (int i = 0; i < conf2.character_form_rules_size(); i++) {
+        const mozc::config::Config_CharacterFormRule& rule2 =
+                conf2.character_form_rules(i);
+
+        mozc::config::Config_CharacterFormRule* rule;
+        if (i >= conf.character_form_rules_size()) {
+            rule = conf.add_character_form_rules();
+            rule->CopyFrom(rule2);
+        } else {
+            rule = conf.mutable_character_form_rules(i);
+        }
+
+        if (rule->group() == group) {
+            const google::protobuf::Descriptor* rule_desc =
+                    rule->GetDescriptor();
+            const google::protobuf::Reflection* rule_ref =
+                    rule->GetReflection();
+
+            const google::protobuf::FieldDescriptor* field1 =
+                   rule_desc->FindFieldByName("preedit_character_form");
+            const google::protobuf::EnumValueDescriptor* desc1 =
+                    field1->enum_type()->FindValueByName(preedit);
+            if (desc1 == NULL) return;
+
+            const google::protobuf::FieldDescriptor* field2 =
+                   rule_desc->FindFieldByName("conversion_character_form");
+            const google::protobuf::EnumValueDescriptor* desc2 =
+                    field2->enum_type()->FindValueByName(conversion);
+            if (desc2 == NULL) return;
+
+            rule_ref->SetEnum(rule, field1, desc1);
+            rule_ref->SetEnum(rule, field2, desc2);
+        }
+    }
+
+    mozc::config::ConfigHandler::SetConfig(conf);
 }
 
 void set(string name, string value) {
@@ -119,8 +225,6 @@ void set(string name, string value) {
         ref->SetBool(&conf, field, (value == "true") ? true : false);
     } else if (type == 9) {
         ref->SetString(&conf, field, value);
-//   } else if (type == 11) {
-//            value << type;
     } else if (type == 12) {
         ref->SetString(&conf, field, value);
     } else if (type == 13) {
@@ -173,7 +277,14 @@ void print_modifier() {
     mozc::config::Config conf;
 
     mozc::config::ConfigHandler::GetConfig(&conf);
-    cout << conf.DebugString();
+
+    istringstream is(conf.DebugString());
+
+    string s;
+    while (getline(is, s)) {
+        debug_str_to_name(s);
+        cout << s << endl;
+    }
 }
 
 void print_all() {
@@ -191,6 +302,8 @@ void print_all() {
 
         stringstream value;
 
+        value << name << ": ";
+
         const int type = field->type();
         if (type == 4) {
             value << ref->GetUInt64(conf, field);
@@ -200,8 +313,27 @@ void print_all() {
             value << (ref->GetBool(conf, field) ? "true" : "false");
         } else if (type == 9) {
             value << "\"" << ref->GetString(conf, field) << "\"";
-//        } else if (type == 11) {
-//            value << type;
+        } else if (type == 11 && name == "character_form_rules") {
+            value.clear();
+            mozc::config::Config conf2;
+            if (conf.character_form_rules_size() > 0)
+                conf2 = conf;
+            else
+                mozc::config::ConfigHandler::GetDefaultConfig(&conf2);
+
+            for (int i = 0; i < conf2.character_form_rules_size(); i++) {
+                const ::mozc::config::Config_CharacterFormRule& rule =
+                        conf2.character_form_rules(i);
+
+                value << name << " {" << endl;
+                istringstream is(rule.DebugString());
+                string s;
+                while (getline(is, s)) {
+                    debug_str_to_name(s);
+                    value << "  " << s << endl;
+                }
+                value << "}" << endl;
+            }
         } else if (type == 12) {
             value << "\"" << ref->GetString(conf, field) << "\"";
         } else if (type == 13) {
@@ -211,7 +343,8 @@ void print_all() {
         } else {
             value << "/* Not Impl Error!! */";
         }
-        cout << name << ": " << value.str() << endl;
+        cout << value.str();
+        if (type != 11) cout << endl;
     }
 }
 
@@ -329,8 +462,12 @@ int main(int argc, char **argv) {
         if (argc > 2)
             get((string)argv[2]);
     } else if (flg == "-s") {
-        if (argc > 3)
+        if ((string)argv[2] == "character_form_rules" && argc > 5) {
+            set_character_form_rules((string)argv[2], (string)argv[3],
+                                     (string)argv[4], (string)argv[5]);
+        } else if (argc > 3) {
             set((string)argv[2], (string)argv[3]);
+        }
     } else if (flg == "-c") {
         if (argc > 2)
             clear((string)argv[2]);
