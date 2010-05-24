@@ -1,0 +1,131 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from os import path, system, popen
+import gtk
+from gtk import glade
+
+
+#GLADE_FILE = "./dict.glade"
+GLADE_FILE = path.join('@IBUS_MOZC_DIR@', 'dict.glade')
+#MOZC_DICT = './mozc-dict'
+MOZC_DICT = path.join('@BIN_DIR@', 'mozc-dict')
+
+Dics = gtk.ListStore(str)
+Data = {}
+
+
+def init_tree_view(xml):
+    tv = xml.get_widget("dic_list")
+
+    c = gtk.TreeViewColumn("", gtk.CellRendererText(), text=0)
+    tv.append_column(c)
+
+    tv.set_model(Dics)
+
+    tv = xml.get_widget("dic_edit")
+
+    for i, s in enumerate(["Key", "Value", "Pos", "Comment"]):
+        c = gtk.TreeViewColumn(s, gtk.CellRendererText(), text=i)
+        c.set_alignment(0.5)
+        c.set_property("expand", True)
+        tv.append_column(c)
+
+    dic_edit = gtk.ListStore(str, str, str, str)
+    tv.set_model(dic_edit)
+
+def get_all():
+    for s in popen('%s -a' % (MOZC_DICT)):
+        s = s.rstrip('\r\n')
+        if s.startswith('name = '):
+            dic = s[len('name = '):]
+            Dics.append([dic])
+            Data[dic] = gtk.ListStore(str, str, str, str)
+        else:
+            Data[dic].append(s.split('\t')[1:])
+
+    if len(Dics) < 1:
+        dic = 'ユーザー辞書 1'
+        Dics.append([dic])
+        Data[dic] = gtk.ListStore(str, str, str, str)
+
+
+class MozcSetup(object):
+    def __init__(self):
+#        glade.bindtextdomain("ibus-mozc", LOCALE_DIR)
+#        glade.textdomain("ibus-mozc")
+
+        glade_file = GLADE_FILE
+        self.xml = glade.XML(glade_file)
+
+        get_all()
+
+        init_tree_view(self.xml)
+
+#        init_widget(self.xml)
+
+        self.xml.signal_autoconnect(self)
+
+        self.xml.get_widget("dic_list").set_cursor(0)
+
+    def on_regist_ok_clicked(self, widget):
+        dialog = self.xml.get_widget("regist_dialog")
+        dialog.hide()
+        key, value, pos = [self.xml.get_widget(s+'_entry').get_text()
+                           for s in ['key', 'value', 'pos']]
+        if key and value and pos:
+            print Dics[0][0]
+            Data[Dics[0][0]].append([key, value, pos, ''])
+            print '%s -s %s %s %s' % (MOZC_DICT, key, value, pos)
+            system('%s -s %s %s %s' % (MOZC_DICT, key, value, pos))
+
+
+    def on_regist_dialog_delete_event(self, widget, event):
+        widget.hide()
+        return True
+
+    def on_regist_cancel_clicked(self, widget):
+        dialog = self.xml.get_widget("regist_dialog")
+        dialog.hide()
+
+    def on_register_clicked(self, widget):
+        for s in ['key', 'value', 'pos', 'comment',]:
+            self.xml.get_widget(s+'_entry').set_text('')
+        dialog = self.xml.get_widget("regist_dialog")
+        dialog.show()
+
+    def on_dic_list_cursor_changed(self, treeview):
+        print 'dic_list_cursor_change', treeview.get_cursor()
+        cur = treeview.get_cursor()[0][0]
+        dic = Dics[cur][0]
+        self.xml.get_widget("dic_edit").set_model(Data[dic])
+
+    def on_menuitem_activate(self, item):
+        print item.name
+
+    def on_menu_deactivate(self, menu):
+        print "deactive"
+        toggle = self.xml.get_widget("management")
+        toggle.set_active(False)
+
+    def on_toggled(self, widget):#, menu=None):
+        if widget.get_active():
+            print "toggled"
+            menu = self.xml.get_widget("menu")
+            x, y = widget.window.get_origin()
+            menu.popup(None, None,
+                       lambda menu: (x, y + widget.allocation.height, False),
+                       0, 0)
+
+    def on_main_delete(self, widget, event):
+#        self.on_cancel_button_clicked(widget)
+        gtk.main_quit()
+        return True
+
+    def run(self):
+        gtk.main()
+
+
+if __name__ == "__main__":
+    MozcSetup().run()
+
