@@ -13,7 +13,7 @@ MOZC_DICT = path.join('@BIN_DIR@', 'mozc-dict')
 
 Dics = gtk.ListStore(str)
 Data = {}
-
+Pos = []
 
 def init_tree_view(xml):
     tv = xml.get_widget("dic_list")
@@ -49,6 +49,12 @@ def get_all():
         Dics.append([dic])
         Data[dic] = gtk.ListStore(str, str, str, str)
 
+def set_pos(xml):
+    pos = xml.get_widget('pos_entry')
+    for s in popen('%s -l' % (MOZC_DICT)):
+        Pos.append(s.strip())
+        pos.append_text(s.strip())
+
 
 class MozcSetup(object):
     def __init__(self):
@@ -61,6 +67,7 @@ class MozcSetup(object):
         get_all()
 
         init_tree_view(self.xml)
+        set_pos(self.xml)
 
 #        init_widget(self.xml)
 
@@ -71,8 +78,9 @@ class MozcSetup(object):
     def on_regist_ok_clicked(self, widget):
         dialog = self.xml.get_widget("regist_dialog")
         dialog.hide()
-        key, value, pos = [self.xml.get_widget(s+'_entry').get_text()
-                           for s in ['key', 'value', 'pos']]
+        key, value = [self.xml.get_widget(s+'_entry').get_text()
+                      for s in ['key', 'value']]
+        pos = self.xml.get_widget('pos_entry').get_active_text()
         if key and value and pos:
             print Dics[0][0]
             Data[Dics[0][0]].append([key, value, pos, ''])
@@ -89,8 +97,10 @@ class MozcSetup(object):
         dialog.hide()
 
     def on_register_clicked(self, widget):
-        for s in ['key', 'value', 'pos', 'comment',]:
+        for s in ['key', 'value', 'comment',]:
             self.xml.get_widget(s+'_entry').set_text('')
+        self.xml.get_widget('pos_entry').set_active(Pos.index('名詞'))
+       
         dialog = self.xml.get_widget("regist_dialog")
         dialog.show()
 

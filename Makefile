@@ -15,6 +15,7 @@ CFLAGS	=
 LDFLAGS	=
 
 INCS	= -I$(MOZC_SRC) \
+	      -I$(MOZC_SRC)/out/Release/obj/gen \
 	      -I$(MOZC_SRC)/out/Release/obj/gen/proto_out
 
 MOZC_CONF	= mozc-config

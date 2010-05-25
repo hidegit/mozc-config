@@ -24,6 +24,10 @@ using namespace std;
 #include "dictionary/user_dictionary_storage.h"
 #include "dictionary/user_dictionary_importer.h"
 
+//#undef MOZC_DICTIONARY_POS_MAP_H_
+//#define kPOSMap kPOSMap2
+//#define MOZC_DICTIONARY_POS_MAP_H_
+
 class MozcDict {
   public:
     MozcDict();
@@ -190,6 +194,27 @@ void print_help() {
     cout << "                                - ファイルはUTF-8文字コード・TAB区切り" << endl;
     cout << "        -c <辞書名>             - <辞書名> で指定した内部辞書をクリアする" << endl;
     cout << "        -r                      - 強制的に再起動する" << endl;
+    cout << "        -l                      - 有効な品詞のリストを表示する" << endl;
+}
+
+namespace {
+struct POSMap {
+    const char *a;
+    const char *b;
+};
+#include "dictionary/pos_map.h"
+}
+#include <set>
+
+void list_pos() {
+    set<string> ss;
+    for (int i = 0; i < arraysize(kPOSMap); i++)
+        if (kPOSMap[i].b != NULL)
+            ss.insert(kPOSMap[i].b);
+
+    set<string>::iterator it;
+    for (it = ss.begin(); it != ss.end(); it++)
+        cout << *it << endl;
 }
 
 int main(int argc, char **argv) {
@@ -219,6 +244,8 @@ int main(int argc, char **argv) {
             md.clear(argv[2]);
             md.save();
         }
+    } else if (flg == "-l") {
+        list_pos();
     } else if (flg == "-r") {
         reboot();
     } else {
