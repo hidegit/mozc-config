@@ -32,9 +32,12 @@ class MozcDict {
   public:
     MozcDict();
     void set_entry(string key, string value, string pos, string comment);
+    void set_entry_with_dic(string dic_name, string key, string value, string pos, string comment);
     void debug_print();
     bool save();
+    int delete_dic(string name);
     int  import(string name, char* file_name);
+    int  export_dic(string name, string file_name);
     void clear(string name);
 
   protected:
@@ -62,7 +65,39 @@ mozc::UserDictionaryStorage::UserDictionary* MozcDict::get_dic(string name) {
     return NULL;
 }
 
+void MozcDict::set_entry_with_dic(string dic_name, string key, string value, string pos, string comment) {
+    mozc::UserDictionaryStorage::UserDictionary* dic = get_dic(dic_name);//NULL;
+//    for (int i = 0; i < dic_num(); i++) {
+//        dic = stor->mutable_dictionaries(i);
+//        if (dic->name() == dic_name) break;
+//    }
+    if (dic == NULL) {
+        if (new_dic(dic_name)) return;
+        dic = get_dic(dic_name);
+    }
+    mozc::UserDictionaryStorage::UserDictionaryEntry from, to;
+    from.set_key(key);
+    from.set_value(value);
+    from.set_pos(pos);
+    if (!mozc::UserDictionaryImporter::ConvertEntry(from, &to)) {
+        cerr << "Invalid POS Error - " << pos << endl;
+        return;
+    }
+    mozc::UserDictionaryStorage::UserDictionaryEntry* entry =
+            dic->add_entries();
+    if (entry == NULL) return;
+    entry->set_key(key);
+    entry->set_value(value);
+    entry->set_pos(to.pos());
+    entry->set_comment(comment);
+}
+
 void MozcDict::set_entry(string key, string value, string pos, string comment) {
+    string dic_name = "ユーザー辞書 1";
+    if (dic_num() >= 1)
+        dic_name = stor->mutable_dictionaries(0)->name();
+    set_entry_with_dic(dic_name, key, value, pos, comment);
+    return;
     if (dic_num() < 1)
         if (new_dic("ユーザー辞書 1")) return;
 
@@ -87,6 +122,23 @@ void MozcDict::set_entry(string key, string value, string pos, string comment) {
     entry->set_comment(comment);
 }
 
+namespace {
+uint64 CreateID() {
+  uint64 id = 0;
+
+  // dic_id == 0 is used as a magic number
+  while (id == 0) {
+    if (!mozc::Util::GetSecureRandomSequence(
+            reinterpret_cast<char *>(&id), sizeof(id))) {
+      LOG(ERROR) << "GetSecureRandomSequence() failed. use rand()";
+      id = static_cast<uint64>(rand());
+    }
+  }
+
+  return id;
+}
+}
+
 void MozcDict::debug_print() {
     for (int i = 0; i < dic_num(); i++) {
         mozc::UserDictionaryStorage::UserDictionary* dic =
@@ -107,6 +159,7 @@ int MozcDict::new_dic(string name) {
     mozc::UserDictionaryStorage::UserDictionary* dic = stor->add_dictionaries();
     if (dic == NULL) return 1;
     dic->set_name(name);
+    dic->set_id(CreateID());
     return 0;
 }
 
@@ -183,15 +236,48 @@ int MozcDict::import(string name, char* file_name) {
     return error;
 }
 
+int MozcDict::delete_dic(string name) {
+    for (int i = 0; i < dic_num(); i++) {
+        mozc::UserDictionaryStorage::UserDictionary* dic =
+                stor->mutable_dictionaries(i);
+        if (dic->name() == name) {
+            if (dic->id() == 0)
+                dic->set_id(CreateID());
+            stor->DeleteDictionary(dic->id());
+            return 0;
+        }
+    }
+    return -1;
+}
+
+int MozcDict::export_dic(string name, const string file_name) {
+    for (int i = 0; i < dic_num(); i++) {
+        mozc::UserDictionaryStorage::UserDictionary* dic =
+                stor->mutable_dictionaries(i);
+        if (dic->name() == name) {
+            if (dic->id() == 0)
+                dic->set_id(CreateID());
+            stor->ExportDictionary(dic->id(), file_name);
+            return 0;
+        }
+    }
+    return -1;
+}
+
 void print_help() {
     cout << "Usage:" << endl;
-    cout << "    mozc-dict [ -h | -a | -s <よみ> <単語> <品詞> ]" << endl;
+    cout << "    mozc-dict [ -h | -a | -swd ARGS | -s ARGS |" << endl;
+    cout << "                -D ARG | -i ARGS  | -e ARGS | -c ARG | -r | -l ]" << endl;
     cout << "        -h                      - ヘルプを表示する" << endl;
     cout << "        -a                      - 辞書の内容をすべて表示する" << endl;
+    cout << "        -swd <辞書名> <よみ> <単語> <品詞> - 指定した辞書に単語を登録する" << endl;
     cout << "        -s <よみ> <単語> <品詞> - 単語を登録する" << endl;
+    cout << "        -D <辞書名>             - 辞書を削除する" << endl;
     cout << "        -i <辞書名> <辞書ファイル名>" << endl;
     cout << "                                - 辞書ファイルをインポートする" << endl;
     cout << "                                - ファイルはUTF-8文字コード・TAB区切り" << endl;
+    cout << "        -e <辞書名> <辞書ファイル名>" << endl;
+    cout << "                                - 辞書ファイルをエクスポートする" << endl;
     cout << "        -c <辞書名>             - <辞書名> で指定した内部辞書をクリアする" << endl;
     cout << "        -r                      - 強制的に再起動する" << endl;
     cout << "        -l                      - 有効な品詞のリストを表示する" << endl;
@@ -229,14 +315,29 @@ int main(int argc, char **argv) {
 
     if (flg == "-a") {
         md.debug_print();
+    } else if (flg == "-swd") {
+        if (argc > 5) {
+            md.set_entry_with_dic(argv[2], argv[3], argv[4], argv[5], "");
+            md.save();
+        }
     } else if (flg == "-s") {
         if (argc > 4) {
             md.set_entry(argv[2], argv[3], argv[4], "");
             md.save();
         }
+    } else if (flg == "-D") {
+        if (argc > 2) {
+            md.delete_dic(argv[2]);
+            md.save();
+        }
     } else if (flg == "-i") {
         if (argc > 3) {
             md.import(argv[2], argv[3]);
+            md.save();
+        }
+    } else if (flg == "-e") {
+        if (argc > 3) {
+            md.export_dic(argv[2], argv[3]);
             md.save();
         }
     } else if (flg == "-c") {
